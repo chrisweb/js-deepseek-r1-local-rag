@@ -17,7 +17,12 @@ This prototype uses technologies that can later be reused in production, locally
 * the ui does not need to be beautiful but we could use a styling library, shadcn, tailwind, ...? Or maybe ask v0 to create a UI for us
 * is the response from the ui formatted using markdown? that would be great, but would it mean we need to use [react-markdown](https://github.com/remarkjs/react-markdown) or create a "markdown to HTML" pipeline (server side / in the server action code streaming back the async ai response) using [remark-rehype](https://github.com/remarkjs/remark-rehype) ourself and send back html instead of markdown
 * an example of using langchain, to train? (not sure training is the right word, not sure if this is considered being RAG) so that the AI can reason using content from our own documents / code
-* try out [github models](https://github.com/marketplace/models) for quick Prototyping using different models, I think they have the advantage that you only need a single API key and can then switch between all models (available in the [github models marketplace](https://github.com/marketplace?type=models)) to compare the result of your prompt, github models is free until until you hit their [rate limits](https://docs.github.com/en/github-models/prototyping-with-ai-models#rate-limits), they also have a [playground](https://docs.github.com/en/github-models/prototyping-with-ai-models) that lets you quickly (no coding required) compare a prompt using different models 
+* try out [github models](https://github.com/marketplace/models) for quick Prototyping using different models, I think they have the advantage that you only need a single API key and can then switch between all models (available in the [github models marketplace](https://github.com/marketplace?type=models)) to compare the result of your prompt, github models is free until until you hit their [rate limits](https://docs.github.com/en/github-models/prototyping-with-ai-models#rate-limits), they also have a [playground](https://docs.github.com/en/github-models/prototyping-with-ai-models) that lets you quickly (no coding required) compare a prompt using different models
+* local (windows) installation of postgres extension pgvector <https://dev.to/mehmetakar/install-pgvector-on-windows-6gl>
+
+## brainstorming and open questions
+
+* is RAG the best training method, what about distilling our own version, after all the deepseek model weights are licensed under the MIT License
 
 ## reading list
 
