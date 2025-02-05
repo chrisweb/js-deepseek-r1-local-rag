@@ -2,6 +2,8 @@
 
 This tutorial is about running DeepSeek-R1 locally (TODO: check what is listed in goals and what finally made it in the prototype)
 
+Most tutorials use Python but this tutorial will only use Javascript (Typescript) tools, like Ollama JS, LangChain JS, Next.js 15 and React 19, ...
+
 For simplicity we will use [PostgreSQL](https://www.postgresql.org/) as it is easy to install it locally no matter what operating system you are using, we will also use the [pgvector extension](https://github.com/pgvector/pgvector), which is a "vector similarity search" extension for Postgres. Another advantage is that we will only need one database, to store and retrieve both, the users chat history and the vector embeddings that we will create (using our data) 
 
 In this tutorial we will come along a lot of situations where we have more than one option, in those cases I will chose one that I will explain in detail but I will also add sources for the remaining options in case you want explore one of them further

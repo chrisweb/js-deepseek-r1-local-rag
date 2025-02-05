@@ -1,0 +1,35 @@
+{
+    "name": "ai-next",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "dev-turbo": "next dev --turbopack",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@mui/material": "6.4.3",
+        "@pigment-css/react": "0.0.30",
+        "next": "15.2.0-canary.40",
+        "react": "19.0.0",
+        "react-dom": "19.0.0"
+    },
+    "devDependencies": {
+        "@eslint/eslintrc": "3.2.0",
+        "@pigment-css/nextjs-plugin": "0.0.30",
+        "@stylistic/eslint-plugin": "3.0.1",
+        "@types/node": "22.13.1",
+        "@types/react": "19.0.8",
+        "@types/react-dom": "19.0.3",
+        "eslint": "9.19.0",
+        "eslint-config-next": "15.2.0-canary.40",
+        "jiti": "2.4.2",
+        "typescript": "5.7.3",
+        "typescript-eslint": "8.23.0"
+    },
+    "overrides": {
+        "next": "15.2.0-canary.40"
+    }
+}
