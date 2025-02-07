@@ -1,4 +1,4 @@
-# AI tutorial
+# Next.js 15 AI onboarding tool
 
 ## Run DeepSeek-R1 locally using Ollama
 
@@ -288,6 +288,10 @@ export default function RootLayout({
 }
 ```
 
+> [!MORE]  
+> [MUI "installation" documentation](https://mui.com/material-ui/getting-started/installation/)  
+> ["MUI and Pigment CSS using Next.js" example](https://github.com/mui/material-ui/tree/master/examples/material-ui-pigment-css-nextjs-ts)  
+
 #### Creating base components
 
 > [!NOTE]  
@@ -414,8 +418,91 @@ export default function Home() {
 }
 ```
 
+#### Server Action and Server Function
+
+Our next goal is to replace the conventional onSubmit handler by a React Action:
+
+```tsx title="/components/chat/MessageInput.tsx"
+'use client'
+
+import Form from '@/components/base/Form'
+import Input from '@/components/base/Input'
+import Button from '@/components/base/Button'
+
+const MessageInput: React.FC = () => {
+
+    const submitAction = (formData: FormData) => {
+        // use the entries (names and values) or values (only values)
+        formData.entries().forEach(([name, value], index) => {
+            console.log('name, value, index: ', name, value, index)
+        })
+    }
+
+    return (
+        <Form action={submitAction}>
+            <Input name="prompt" />
+            <Button type="submit">s</Button>
+        </Form>
+    )
+}
+
+export default MessageInput
+```
+
+If you compare the current code with the code from the previous **MessageInput** component then you will notice that by using the **action** we have simplified our code, we can push this further by putting the action itself into it's own file
+
+First we create a new actions folder in the root of project, that folder will have a similar structure to what we do in the components folder `/actions/chat`
+
+Next we create the Action file:
+
+```tsx title="/actions/chat/Submit.ts"
+const submitAction = (formData: FormData) => {
+    // use the entries (names and values) or values (only values)
+    formData.entries().forEach(([name, value], index) => {
+        console.log('name, value, index: ', name, value, index)
+    })
+}
+
+export default submitAction
+```
+
+And finally we import the new Action in our client component:
+
+```tsx title="/components/chat/MessageInput.tsx"
+'use client'
+
+import Form from '@/components/base/Form'
+import Input from '@/components/base/Input'
+import Button from '@/components/base/Button'
+import submitAction from '@/actions/chat/SubmitAction'
+
+const MessageInput: React.FC = () => {
+    return (
+        <Form action={submitAction}>
+            <Input name="prompt" />
+            <Button type="submit">s</Button>
+        </Form>
+    )
+}
+
+export default MessageInput
+```
+
+For now this is a client Action and so the console log can be seen in our browser dev tools console tab, but there is nothing in our Terminal. If we open the browser dev tools **Network** tab we can see that there are no calls to the backend
+
+We will change that by making our Action a Server Action:
+
+```tsx title="/components/chat/MessageInput.tsx"
+'use server'
+
+const submitAction = (formData: FormData) => {
+    // use the entries (names and values) or values (only values)
+    formData.entries().forEach(([name, value], index) => {
+        console.log('name, value, index: ', name, value, index)
+    })
+}
+
+export default submitAction
+```
 
 
-> [!MORE]  
-> [MUI "installation" documentation](https://mui.com/material-ui/getting-started/installation/)  
-> ["MUI and Pigment CSS using Next.js" example](https://github.com/mui/material-ui/tree/master/examples/material-ui-pigment-css-nextjs-ts)  
