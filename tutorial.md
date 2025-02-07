@@ -186,10 +186,10 @@ We will use [MUI](https://mui.com/core/) **Material** for this project, but if y
 For a default installation MUI recommends installing the following packages:
 
 ```shell
-npm i @mui/material @pigment-css/react --save-exact
+npm i @mui/material @pigment-css/react @mui/material-pigment-css --save-exact
 ```
 
-and then also dev dependencies:
+and then also a **dev** dependencies:
 
 ```shell
 npm i @pigment-css/nextjs-plugin --save-exact --save-dev
