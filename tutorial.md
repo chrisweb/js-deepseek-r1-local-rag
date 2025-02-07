@@ -69,10 +69,40 @@ to stop a model use:
 ollama stop
 ```
 
+to see what version of ollama is currently installed use:
+
+```shell
+ollama -v
+```
+
 > [!MORE]  
 > [Ollama Readme](https://github.com/ollama/ollama)  
 
-## Next.js 15 and React 19
+## AI training
+
+### Creating embeddings
+
+TODO: explain what embeddings are and why we want to create them
+
+#### LangChain.js
+
+Python is usually the language of choice when data engineers create a project, but as a web developer I want to only use Javascript tools, so instead of using the python version of the [Langchain Framework](https://github.com/langchain-ai/langchain) we will use the [LangChain.js](https://github.com/langchain-ai/langchainjs) version that is written in Javascript (Typescript)
+
+#### Installation
+
+```shell
+npm i langchain --save-exact
+```
+
+#### Data loader
+
+The first thing we will develop is a data loader 
+
+from langchain.document_loaders import UnstructuredMarkdownLoader
+
+
+
+## AI Frontend using Next.js 15 and React 19
 
 In this chapter we will install Next.js 15 and React 19 and then create an UI that can be used to interact with the AI model, by letting us send prompts and then display the response
 
@@ -192,7 +222,7 @@ We will use [MUI](https://mui.com/core/) **Material** for this project, but if y
 For a default installation MUI recommends installing the following packages:
 
 ```shell
-npm i @mui/material @pigment-css/react @mui/material-pigment-css --save-exact
+npm i @mui/material @mui/material-pigment-css --save-exact
 ```
 
 and then also a **dev** dependencies:
@@ -516,6 +546,8 @@ const submitAction = (formData: FormData) => {
 
 export default submitAction
 ```
+
+// TODO: we can configure some Next.js options regarding server actions: <https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions>
 
 > [!MORE]  
 > [Next.js "Server Actions and Mutations" documentation](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)  

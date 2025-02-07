@@ -27,6 +27,7 @@ const ignoresConfig = [
             '.next/',
             '.vscode/',
             'public/',
+            'app/docs/',
         ]
     },
 ]
