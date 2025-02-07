@@ -9,18 +9,8 @@ const BaseForm: React.FC<BaseFormProps> = (props) => {
 
     const { children, ...rest } = props
 
-    const onSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
-
-        const formData = new FormData(event.currentTarget)
-
-        event.preventDefault()
-
-        console.log(formData)
-
-    }
-
     return (
-        <form onSubmit={onSubmitHandler} {...rest}>
+        <form {...rest}>
             <FormControl>
                 {children}
             </FormControl>
