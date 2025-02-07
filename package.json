@@ -12,6 +12,7 @@
     "dependencies": {
         "@mui/material": "6.4.3",
         "@mui/material-pigment-css": "6.4.3",
+        "langchain": "0.3.15",
         "next": "15.2.0-canary.45",
         "react": "19.0.0",
         "react-dom": "19.0.0"
