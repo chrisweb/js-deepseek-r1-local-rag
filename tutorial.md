@@ -183,6 +183,10 @@ export default function Home() {
 We will use [MUI](https://mui.com/core/) **Material** for this project, but if you prefer [Tailwind 4](https://github.com/tailwindlabs/tailwindcss) (with [shadcn/ui](https://ui.shadcn.com/docs/cli)
 (using their new CLI) or [daisyUI](https://github.com/saadeghi/daisyui)) would of course work too
 
+> [!MORE]  
+> [MUI "Material UI"](https://mui.com/material-ui/)  
+> [Pigment CSS Readme](https://github.com/mui/pigment-css)  
+
 #### Installation
 
 For a default installation MUI recommends installing the following packages:
@@ -229,7 +233,7 @@ TODO: do we need lucide? do we need the mui icons? do we install the material ic
 
 #### MUI and Pigment CSS setup
 
-First we need to edit our next.config.ts file to import Pigment CSS and add the **withPigment** configuration:
+First we need to edit our next.config.ts file to the **withPigment** function from the Pigment CSS Next.js plugin:
 
 ```tsx title="next.config.ts"
 import type { NextConfig } from 'next'
@@ -287,6 +291,12 @@ export default function RootLayout({
     )
 }
 ```
+
+It is important that we import the **styles.css** file from the material-pigment-css package as this is file will hold all the CSS that Pigment CSS will generate for us. Next.js will take that CSS as well as the stylesheet from the global.css and transform them into optimized css files that it will add to the `<head>{:html}` element of our pages
+
+// TODO: there is one thing that is quite confusing, examples like this one: <https://github.com/mui/material-ui/blob/v6.x/examples/material-ui-nextjs-ts/src/app/layout.tsx> or even documentation like this one: <https://mui.com/material-ui/integrations/nextjs/> seem to suggest I need an AppRouterCacheProvider as well as a ThemeProvider to make things work, but my usage of pigment seems to make these obsolete, I find my solution much simpler, so I will stick with my current pigment & mui setup unless I find out there is something wrong with it
+// this documentation seems to much more modern: <https://mui.com/material-ui/migration/migrating-to-pigment-css/>
+// i still need to understand how I can benefit from new features included in material design 3 / Material You? <https://github.com/mui/material-ui/issues/29345#issuecomment-2635842073>
 
 > [!MORE]  
 > [MUI "installation" documentation](https://mui.com/material-ui/getting-started/installation/)  
@@ -418,7 +428,7 @@ export default function Home() {
 }
 ```
 
-#### Server Action and Server Function
+#### React Action
 
 Our next goal is to replace the conventional onSubmit handler by a React Action:
 
@@ -490,6 +500,8 @@ export default MessageInput
 
 For now this is a client Action and so the console log can be seen in our browser dev tools console tab, but there is nothing in our Terminal. If we open the browser dev tools **Network** tab we can see that there are no calls to the backend
 
+#### React Server Action and Function
+
 We will change that by making our Action a Server Action:
 
 ```tsx title="/components/chat/MessageInput.tsx"
@@ -505,4 +517,7 @@ const submitAction = (formData: FormData) => {
 export default submitAction
 ```
 
-
+> [!MORE]  
+> [Next.js "Server Actions and Mutations" documentation](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)  
+> [React "Server Functions / Actions" documentation](https://react.dev/reference/rsc/server-functions)  
+> [React "Form action" documentation](https://react.dev/reference/react-dom/components/form)  
