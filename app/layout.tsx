@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import './globals.css'
 import { Roboto } from 'next/font/google'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
+
+import './globals.css'
+import '@mui/material-pigment-css/styles.css'
 
 export const metadata: Metadata = {
     title: 'Create Next App',
@@ -13,16 +13,7 @@ const roboto = Roboto({
     weight: ['300', '400', '500', '700'],
     subsets: ['latin'],
     display: 'swap',
-})
-
-const theme = createTheme({
-    colorSchemes: { light: true, dark: true },
-    cssVariables: {
-        colorSchemeSelector: 'class',
-    },
-    typography: {
-        fontFamily: roboto.style.fontFamily,
-    },
+    variable: '--font-roboto',
 })
 
 export default function RootLayout({
@@ -32,12 +23,8 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body>
-                <ThemeProvider theme={theme}>
-                    {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-                    <CssBaseline />
-                    {children}
-                </ThemeProvider>
+            <body className={roboto.variable}>
+                {children}
             </body>
         </html>
     )
