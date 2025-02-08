@@ -1,39 +1,57 @@
 import { DirectoryLoader } from 'langchain/document_loaders/fs/directory'
 import { TextLoader } from 'langchain/document_loaders/fs/text'
 import { MarkdownTextSplitter } from 'langchain/text_splitter'
-import * as path from 'path'
+import path from 'node:path'
 import { type Document } from 'langchain/document'
-
+import { OllamaEmbeddings, type OllamaEmbeddingsParams } from '@langchain/ollama'
 
 async function loadDocuments(documentsPath: string): Promise<Document[]> {
 
     const loader = new DirectoryLoader(
         path.join(process.cwd(), documentsPath),
         {
-            '.mdx': filePath => new TextLoader(filePath),
+            '.md': filePath => new TextLoader(filePath),
         }
     )
 
     const docs = await loader.load()
 
-    // Initialize markdown splitter with specific configuration
+    return docs
+
+}
+
+async function splitIntoChunks(docs: Document[]): Promise<Document[]> {
+
     const markdownSplitter = new MarkdownTextSplitter({
         chunkSize: 1000,
         chunkOverlap: 200,
     })
 
-    // Split the documents into chunks
-    const splitDocs = await markdownSplitter.splitDocuments(docs)
+    const chunks = await markdownSplitter.splitDocuments(docs)
 
-    return splitDocs
+    return chunks
+}
+
+async function embeddingChunks(chunks: Document[]) {
+    const options: OllamaEmbeddingsParams = {
+        // https://ollama.com/library/nomic-embed-text
+        model: 'nomic-embed-text:latest',
+        baseUrl: 'http://localhost:11434',
+    }
+    const embeddings = new OllamaEmbeddings(options)
+    const vectors = await embeddings.embedDocuments(chunks.map(chunk => chunk.pageContent))
+    return vectors
 }
 
 async function main() {
     try {
-        const documentsPath = 'app/docs'
+        const documentsPath = 'docs'
         const documents = await loadDocuments(documentsPath)
-        console.log(`Processed ${String(documents.length)} document chunks`)
-        // process these documents further (create embeddings)
+        console.log('documents loaded: ', documents.length)
+        const chunks = await splitIntoChunks(documents)
+        console.log('chunks created: ', chunks.length)
+        const vectors = await embeddingChunks(chunks)
+        console.log('vectors created: ', vectors[0].length)
     } catch (error) {
         console.error('Error processing documents:', error)
     }
