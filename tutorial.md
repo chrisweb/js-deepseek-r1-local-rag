@@ -78,27 +78,259 @@ ollama -v
 > [!MORE]  
 > [Ollama Readme](https://github.com/ollama/ollama)  
 
-## AI training
+## AI Retrieval-Augmented Generation (RAG)
 
-### Creating embeddings
+We will use a technique called **Retrieval-Augmented Generation (RAG)** to provide our Large Language Model (LLM) with external information. For the LLM to be able to use our information we will:
 
-TODO: explain what embeddings are and why we want to create them
+* first need to get the content from our local documents (markdown files)
+* then we will split those documents into smaller chunks (that are easier for the LLM to digest 😉)
+* then we will use an embeddings model to create vectors
+* and finally we will store those vectors into a vector database 
 
-#### LangChain.js
+### LangChain.js Installation
 
 Python is usually the language of choice when data engineers create a project, but as a web developer I want to only use Javascript tools, so instead of using the python version of the [Langchain Framework](https://github.com/langchain-ai/langchain) we will use the [LangChain.js](https://github.com/langchain-ai/langchainjs) version that is written in Javascript (Typescript)
-
-#### Installation
 
 ```shell
 npm i langchain --save-exact
 ```
 
-#### Data loader
+> [!MORE]  
+> [LangChain.js API Reference](https://v03.api.js.langchain.com/index.html)  
 
-The first thing we will develop is a data loader 
+### Data loader to get the content of markdown documents
 
-from langchain.document_loaders import UnstructuredMarkdownLoader
+The first thing we will develop is a data loader:
+
+```ts title="scripts/embeddings.ts"
+import { DirectoryLoader } from 'langchain/document_loaders/fs/directory'
+import { TextLoader } from 'langchain/document_loaders/fs/text'
+import path from 'node:path'
+import { type Document } from 'langchain/document'
+
+async function loadDocuments(documentsPath: string): Promise<Document[]> {
+
+    const loader = new DirectoryLoader(
+        path.join(process.cwd(), documentsPath),
+        {
+            '.md': filePath => new TextLoader(filePath),
+        }
+    )
+
+    const docs = await loader.load()
+
+    return docs
+
+}
+
+async function main() {
+    try {
+        const documentsPath = 'docs'
+        const documents = await loadDocuments(documentsPath)
+        console.log('documents loaded: ', documents.length)
+    } catch (error) {
+        console.error('Error processing documents:', error)
+    }
+}
+
+await main()
+```
+
+We use the langchain **DirectoryLoader** to scan a directory for documents and then load each document using the langchain **TextLoader**
+
+TODO: <https://github.com/langchain-ai/langchainjs/blob/main/libs/langchain-community/src/document_loaders/fs/obsidian.ts>
+
+
+### Split documents into chunks
+
+```ts title="scripts/embeddings.ts"
+import { DirectoryLoader } from 'langchain/document_loaders/fs/directory'
+import { TextLoader } from 'langchain/document_loaders/fs/text'
+import { MarkdownTextSplitter } from 'langchain/text_splitter'
+import path from 'node:path'
+import { type Document } from 'langchain/document'
+
+async function loadDocuments(documentsPath: string): Promise<Document[]> {
+
+    const loader = new DirectoryLoader(
+        path.join(process.cwd(), documentsPath),
+        {
+            '.md': filePath => new TextLoader(filePath),
+        }
+    )
+
+    const docs = await loader.load()
+
+    return docs
+
+}
+
+async function splitIntoChunks(docs: Document[]): Promise<Document[]> {
+
+    const markdownSplitter = new MarkdownTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+    })
+
+    const chunks = await markdownSplitter.splitDocuments(docs)
+
+    return chunks
+}
+
+async function main() {
+    try {
+        const documentsPath = 'docs'
+        const documents = await loadDocuments(documentsPath)
+        console.log('documents loaded: ', documents.length)
+        const chunks = await splitIntoChunks(documents)
+        console.log('chunks created: ', chunks.length)
+    } catch (error) {
+        console.error('Error processing documents:', error)
+    }
+}
+
+await main()
+```
+
+TODO: might want to use a regex for markdown headings to split by chapters???
+
+### Pull an Embeddings Model and then use it locally
+
+First we need to install @langchain/ollama:
+
+```shell
+npm i @langchain/ollama --save-exact
+```
+
+Next we need to pull an embeddings model, in this tutorial we will use the latest [nomic-embed-text model](), by using the following command in our terminal:
+
+```shell
+ollama pull nomic-embed-text:latest
+```
+
+Now we can create a new function that will use @langchain/ollama to create embeddings for each of our chunks:
+
+```ts title="scripts/embeddings.ts"
+import { DirectoryLoader } from 'langchain/document_loaders/fs/directory'
+import { TextLoader } from 'langchain/document_loaders/fs/text'
+import { MarkdownTextSplitter } from 'langchain/text_splitter'
+import path from 'node:path'
+import { type Document } from 'langchain/document'
+
+async function loadDocuments(documentsPath: string): Promise<Document[]> {
+
+    const loader = new DirectoryLoader(
+        path.join(process.cwd(), documentsPath),
+        {
+            '.md': filePath => new TextLoader(filePath),
+        }
+    )
+
+    const docs = await loader.load()
+
+    return docs
+
+}
+
+async function splitIntoChunks(docs: Document[]): Promise<Document[]> {
+
+    const markdownSplitter = new MarkdownTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+    })
+
+    const chunks = await markdownSplitter.splitDocuments(docs)
+
+    return chunks
+}
+
+async function embeddingChunks(chunks: Document[]) {
+    const options: OllamaEmbeddingsParams = {
+        // https://ollama.com/library/nomic-embed-text
+        model: 'nomic-embed-text:latest',
+        baseUrl: 'http://localhost:11434',
+    }
+    const embeddings = new OllamaEmbeddings(options)
+    const vectors = await embeddings.embedDocuments(chunks.map(chunk => chunk.pageContent))
+    return vectors
+}
+
+async function main() {
+    try {
+        const documentsPath = 'docs'
+        const documents = await loadDocuments(documentsPath)
+        console.log('documents loaded: ', documents.length)
+        const chunks = await splitIntoChunks(documents)
+        console.log('chunks created: ', chunks.length)
+        const vectors = await embeddingChunks(chunks)
+        console.log('vectors created: ', vectors[0].length)
+    } catch (error) {
+        console.error('Error processing documents:', error)
+    }
+}
+
+await main()
+```
+
+### Install PostgreSQL
+
+Windows: download the [PostgreSQL Windows installer](https://www.postgresql.org/download/windows/)
+
+macOS: using the [brew command](https://www.postgresql.org/download/macosx/):
+
+```shell
+brew install postgresql@17
+```
+
+Linux: several [PostgreSQL Linux distributions](https://www.postgresql.org/download/) are supported:
+
+For example on Ubuntu/Debian you can use:
+
+```shell
+apt install postgresql
+```
+
+#### pgvector for PostgreSQL
+
+Next we need to install **pgvector**, I have added instructions below for Windows, if you use macOS or Linux I recommend you follow the installation instructions from the [pgvector readme](https://github.com/pgvector/pgvector)
+
+On Windows:
+
+First we need to clone the pgvector repository so I recommend going into your projects folder (or a temp folder if you prefer):
+
+```shell
+cd MY_PROJECTS
+```
+
+Then we clone the pgvector repository:
+
+```shell
+git clone https://github.com/pgvector/pgvector.git
+```
+
+Then we go inside of the pgvector folder:
+
+```shell
+cd pgvector
+```
+
+Next you need to make sure the we have the C++ build tools for Visual Studio, you can either install the Visual Studio IDE or you can install the [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) as standalone
+
+Double click on the **Visual Studio Installer** to launch it
+
+Next in the Installed tab you should either have the Visual Studio or the standalone build tools being listed, click on **Modify** and then locate the **Desktop development with C++** and check the checkbox in the top right corner
+
+Now you will see the details of what is about to get installed on the left
+
+Finally click on **Install** button (in the bottom left, next to the close button) to apply the changes and install the C++ development tools
+
+To make sure everything we need got installed, make sure the following file exists:
+
+```shell
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat
+```
+
+Depending on what version you installed you might have to adjust the version (year) in the path
 
 
 
