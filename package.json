@@ -12,6 +12,7 @@
     },
     "dependencies": {
         "@langchain/community": "^0.3.29",
+        "@langchain/ollama": "0.1.5",
         "@mui/material": "6.4.3",
         "@mui/material-pigment-css": "6.4.3",
         "langchain": "^0.3.15",
