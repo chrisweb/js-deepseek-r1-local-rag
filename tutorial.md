@@ -292,47 +292,51 @@ apt install postgresql
 
 #### pgvector for PostgreSQL
 
-Next we need to install **pgvector**, I have added instructions below for Windows, if you use macOS or Linux I recommend you follow the installation instructions from the [pgvector readme](https://github.com/pgvector/pgvector)
+Next we need to install **pgvector** (or if you prefer you can use the [pgvector docker](https://hub.docker.com/r/pgvector/pgvector)), I have added instructions below for Windows, if you use macOS or Linux I recommend you follow the installation instructions from the [pgvector readme](https://github.com/pgvector/pgvector)
 
 On Windows:
 
-First we need to clone the pgvector repository so I recommend going into your projects folder (or a temp folder if you prefer):
+First we need to make sure the we have the C++ build tools for Visual Studio installed, if you have the build tools of even the full version of Visual Studio installed then you can skip this step, else either install the Visual Studio IDE (which includes the build tools) or you can install the [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) as standalone
 
-```shell
-cd MY_PROJECTS
-```
-
-Then we clone the pgvector repository:
-
-```shell
-git clone https://github.com/pgvector/pgvector.git
-```
-
-Then we go inside of the pgvector folder:
-
-```shell
-cd pgvector
-```
-
-Next you need to make sure the we have the C++ build tools for Visual Studio, you can either install the Visual Studio IDE or you can install the [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) as standalone
-
-Double click on the **Visual Studio Installer** to launch it
+When it has finished downloading, double click on the **Visual Studio Installer** to launch it
 
 Next in the Installed tab you should either have the Visual Studio or the standalone build tools being listed, click on **Modify** and then locate the **Desktop development with C++** and check the checkbox in the top right corner
 
 Now you will see the details of what is about to get installed on the left
+
+![]()
 
 Finally click on **Install** button (in the bottom left, next to the close button) to apply the changes and install the C++ development tools
 
 To make sure everything we need got installed, make sure the following file exists:
 
 ```shell
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat
 ```
 
-Depending on what version you installed you might have to adjust the version (year) in the path
+> [!NOTE]  
+> Depending on what version you installed you might have to adjust the path, for example I download version 2022, also as I downloaded the Visual Studio Build tools we have "BuildTools", if you downloaded the Visual Studio community edition then you should have "Community" in your path.
 
+Next step is to open the **Command Prompt** for VS 2022 (or the default one will work too) as **administrator** (right click the name, and then "Run as administrator"), you can find it clicking on start (bottom left windows icon) and then type "cmd"
 
+Now that the VS command prompt is open we type the following commands, line by line, just make sure you adjust the versions of the tools:
+
+* line 2: we clone the pgvector repository (here we install version 0.8.0 which as of Jan. 2025 is the latest, you may want to check out the [pgvector tags on GitHub](https://github.com/pgvector/pgvector/tags) to make sure this is still the latest version)
+* line 4: we setup the visual studio environment by running a bat file, adjust the **path** based on what Visual Studio edition or tools are have installed, see the Note above
+* line 5: we set the path to PostgreSQL, make sure to adjust the version to match the one that is installed on your device
+
+```shell
+cd %TEMP%
+git clone https://github.com/pgvector/pgvector.git --branch v0.8.0
+cd pgvector
+"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+set "PGROOT=C:\Program Files\PostgreSQL\17"
+nmake /F Makefile.win
+nmake /F Makefile.win install
+```
+
+> [!TIP]  
+> Even if you don't upgrade your PostgreSQL Server on Windows, you can still install the latest pgAdmin (separately): [pgAdmin 4 (Windows) downloads](https://www.pgadmin.org/download/pgadmin-4-windows/)
 
 ## AI Frontend using Next.js 15 and React 19
 
