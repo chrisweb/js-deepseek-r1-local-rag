@@ -194,7 +194,7 @@ await main()
 
 TODO: might want to use a regex for markdown headings to split by chapters???
 
-### Pull an Embeddings Model and then use it locally
+### Pull an Embeddings Model
 
 First we need to install @langchain/ollama:
 
@@ -244,7 +244,7 @@ async function splitIntoChunks(docs: Document[]): Promise<Document[]> {
     return chunks
 }
 
-async function embeddingChunks(chunks: Document[]) {
+async function processChunks(chunks: Document[]) {
     const options: OllamaEmbeddingsParams = {
         // https://ollama.com/library/nomic-embed-text
         model: 'nomic-embed-text:latest',
@@ -262,7 +262,7 @@ async function main() {
         console.log('documents loaded: ', documents.length)
         const chunks = await splitIntoChunks(documents)
         console.log('chunks created: ', chunks.length)
-        const vectors = await embeddingChunks(chunks)
+        const vectors = await processChunks(chunks)
         console.log('vectors created: ', vectors[0].length)
     } catch (error) {
         console.error('Error processing documents:', error)
@@ -290,9 +290,16 @@ For example on Ubuntu/Debian you can use:
 apt install postgresql
 ```
 
+> [!TIP]  
+> Windows: PostgreSQL will run as a service in the background, you can stop / pause / restart the service by using the Windows **Services** tool (click on Windows start and type "Services" to find it)
+
 #### pgvector for PostgreSQL
 
-Next we need to install **pgvector** (or if you prefer you can use the [pgvector docker](https://hub.docker.com/r/pgvector/pgvector)), I have added instructions below for Windows, if you use macOS or Linux I recommend you follow the installation instructions from the [pgvector readme](https://github.com/pgvector/pgvector)
+Next we need to install **pgvector** (or if you prefer you can use the [pgvector docker](https://hub.docker.com/r/pgvector/pgvector))
+
+I have added instructions below for Windows, if you use macOS or Linux I recommend you follow the installation instructions from the [pgvector readme](https://github.com/pgvector/pgvector)
+
+##### Installation
 
 On Windows:
 
@@ -335,8 +342,168 @@ nmake /F Makefile.win
 nmake /F Makefile.win install
 ```
 
+##### Getting started
+
+Next we need to run some queries, by using the pgAdmin query tool. If you haven't installed it yet or want to update it visit the: [pgAdmin 4 downloads](https://www.pgadmin.org/download/) page
+
 > [!TIP]  
-> Even if you don't upgrade your PostgreSQL Server on Windows, you can still install the latest pgAdmin (separately): [pgAdmin 4 (Windows) downloads](https://www.pgadmin.org/download/pgadmin-4-windows/)
+> When migrating to a new version of pgAdmin on Windows, you might get this Error:
+>  
+> > PermissionError: [WinError 32] The process cannot access the file because it is being used by another process
+>  
+> In which case the solution is to delete everything in the `%APPDATA%\pgAdmin` to reset pgAdmin and then start pgAdmin
+
+Open pgAdmin and connect to your local server
+
+First we create a **new database** (right click Databases and choose Create), in this tutorial we will name it **vector_store**
+
+Next we right click on the database name and select **Query Tool**
+
+Our first query will **enable pgvector** for the current database (copy the following query into your Query Tool and click the Execute (play) button to run the query):
+
+```shell
+CREATE EXTENSION vector;
+```
+
+#### Storing the vectors
+
+Back to coding soon, but first we need to install the [@langchain/community](https://github.com/langchain-ai/langchainjs/tree/main/libs/langchain-community/) and also the [pg (node-postgres)](https://www.npmjs.com/package/pg) package:
+
+```shell
+npm i @langchain/community pg --save-exact
+```
+
+And then the types for pg:
+
+```shell
+npm i @types/pg --save-exact --save-dev
+```
+
+Next we add a function to use the langchain pgvector vectorstore:
+
+```ts title="scripts/embeddings.ts"
+import { DirectoryLoader } from 'langchain/document_loaders/fs/directory'
+import { TextLoader } from 'langchain/document_loaders/fs/text'
+import { MarkdownTextSplitter } from 'langchain/text_splitter'
+import path from 'node:path'
+import { type Document } from 'langchain/document'
+import { OllamaEmbeddings, type OllamaEmbeddingsParams } from '@langchain/ollama'
+import { PGVectorStore, type PGVectorStoreArgs } from '@langchain/community/vectorstores/pgvector'
+import pg, { type PoolConfig, type Pool as PoolType } from 'pg'
+
+const { Pool } = pg
+
+async function loadDocuments(documentsPath: string) {
+
+    const loader = new DirectoryLoader(
+        path.join(process.cwd(), documentsPath),
+        {
+            '.md': filePath => new TextLoader(filePath),
+        }
+    )
+
+    const docs = await loader.load()
+
+    return docs
+
+}
+
+async function splitIntoChunks(docs: Document[]) {
+
+    const markdownSplitter = new MarkdownTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+    })
+
+    const chunks = await markdownSplitter.splitDocuments(docs)
+
+    return chunks
+}
+
+async function processChunks(chunks: Document[]) {
+    const embeddings = getEmbeddings()
+    const vectors = await embeddings.embedDocuments(chunks.map(chunk => chunk.pageContent))
+    return vectors
+}
+
+async function storeVectors(vectors: number[][], chunks: Document[], pgPool: PoolType) {
+    const embeddings = getEmbeddings()
+    const options: PGVectorStoreArgs = {
+        pool: pgPool,
+        tableName: 'vectors',
+        columns: {
+            idColumnName: 'id',
+            vectorColumnName: 'vector',
+            contentColumnName: 'content',
+            metadataColumnName: 'metadata',
+        },
+        // supported distance strategies: cosine (default), innerProduct, or euclidean
+        distanceStrategy: 'cosine',
+    }
+    const vectorStore = await PGVectorStore.initialize(embeddings, options)
+    await vectorStore.addVectors(vectors, chunks)
+    return vectorStore
+}
+
+// async function that creates a pg pool
+function createPool() {
+
+    const postgresOptions: PoolConfig = {
+        host: '127.0.0.1',
+        port: 5432,
+        user: 'postgres',
+        password: '123',
+        database: 'vector_store',
+    }
+
+    const pool = new Pool(postgresOptions)
+
+    pool.on('error', (error) => {
+        console.error('Unexpected error on idle client', error)
+        process.exit(-1)
+    })
+
+    return pool
+}
+
+async function endPool(vectorStore: PGVectorStore) {
+    await vectorStore.end()
+}
+
+function getEmbeddings() {
+    const options: OllamaEmbeddingsParams = {
+        // https://ollama.com/library/nomic-embed-text
+        model: 'nomic-embed-text:latest',
+        baseUrl: 'http://localhost:11434',
+    }
+    const embeddings = new OllamaEmbeddings(options)
+    return embeddings
+}
+
+async function main() {
+    try {
+        const documentsPath = 'docs'
+        const documents = await loadDocuments(documentsPath)
+        console.log('documents loaded: ', documents.length)
+        const chunks = await splitIntoChunks(documents)
+        console.log('chunks created: ', chunks.length)
+        const vectors = await processChunks(chunks)
+        console.log('vectors created: ', vectors[0].length)
+        const pgPool = createPool()
+        const vectorStore = await storeVectors(vectors, chunks, pgPool)
+        console.log('vectors stored')
+        await endPool(vectorStore)
+        console.log('postgres pool released')
+    } catch (error) {
+        console.error('Error processing documents:', error)
+    }
+}
+
+await main()
+```
+
+> [!MORE]  
+> [PGVectorStore API reference](https://v03.api.js.langchain.com/classes/_langchain_community.vectorstores_pgvector.PGVectorStore.html)  
 
 ## AI Frontend using Next.js 15 and React 19
 
