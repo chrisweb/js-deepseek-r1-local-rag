@@ -11,12 +11,13 @@
         "embeddings": "node --experimental-transform-types scripts/embeddings.ts"
     },
     "dependencies": {
-        "@langchain/community": "^0.3.29",
+        "@langchain/community": "0.3.29",
         "@langchain/ollama": "0.1.5",
         "@mui/material": "6.4.3",
         "@mui/material-pigment-css": "6.4.3",
         "langchain": "^0.3.15",
         "next": "15.2.0-canary.45",
+        "pg": "8.13.1",
         "react": "19.0.0",
         "react-dom": "19.0.0"
     },
@@ -25,6 +26,7 @@
         "@pigment-css/nextjs-plugin": "0.0.30",
         "@stylistic/eslint-plugin": "3.0.1",
         "@types/node": "22.13.1",
+        "@types/pg": "8.11.11",
         "@types/react": "19.0.8",
         "@types/react-dom": "19.0.3",
         "eslint": "9.19.0",
