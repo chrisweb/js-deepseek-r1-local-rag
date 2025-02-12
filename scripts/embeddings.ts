@@ -5,9 +5,7 @@ import path from 'node:path'
 import { type Document } from 'langchain/document'
 import { OllamaEmbeddings, type OllamaEmbeddingsParams } from '@langchain/ollama'
 import { PGVectorStore, type PGVectorStoreArgs } from '@langchain/community/vectorstores/pgvector'
-import pg, { type PoolConfig, type Pool as PoolType } from 'pg'
-
-const { Pool } = pg
+import { createPool, type PoolType } from '@/lib/postgres'
 
 async function loadDocuments(documentsPath: string) {
 
@@ -61,28 +59,8 @@ async function storeVectors(vectors: number[][], chunks: Document[], pgPool: Poo
     return vectorStore
 }
 
-// async function that creates a pg pool
-function createPool() {
-
-    const postgresOptions: PoolConfig = {
-        host: '127.0.0.1',
-        port: 5432,
-        user: 'postgres',
-        password: '123',
-        database: 'vector_store',
-    }
-
-    const pool = new Pool(postgresOptions)
-
-    pool.on('error', (error) => {
-        console.error('Unexpected error on idle client', error)
-        process.exit(-1)
-    })
-
-    return pool
-}
-
-async function endPool(vectorStore: PGVectorStore) {
+async function endVectorStorePool(vectorStore: PGVectorStore) {
+    // closes all clients and then releases the pool
     await vectorStore.end()
 }
 
@@ -97,6 +75,14 @@ function getEmbeddings() {
 }
 
 async function main() {
+
+    const pgPool = createPool()
+
+    pgPool.on('error', (error) => {
+        console.error('Unexpected error on idle client', error)
+        process.exit(-1)
+    })
+
     try {
         const documentsPath = 'docs'
         const documents = await loadDocuments(documentsPath)
@@ -105,10 +91,9 @@ async function main() {
         console.log('chunks created: ', chunks.length)
         const vectors = await processChunks(chunks)
         console.log('vectors created: ', vectors[0].length)
-        const pgPool = createPool()
         const vectorStore = await storeVectors(vectors, chunks, pgPool)
         console.log('vectors stored')
-        await endPool(vectorStore)
+        await endVectorStorePool(vectorStore)
         console.log('postgres pool released')
     } catch (error) {
         console.error('Error processing documents:', error)

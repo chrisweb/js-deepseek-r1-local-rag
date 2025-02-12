@@ -28,7 +28,7 @@ To install Ollama on macOS I recommend using brew: <https://formulae.brew.sh/for
 
 ### Ollama quickstart
 
-we will start with the smallest [deepseek-r1](https://ollama.com/library/deepseek-r1) model that is available, we will then make a first test to see how well it performs on our hardware, if it is fast then we can still switch to more computational power hungry versions
+We will start with [deepseek-r1:1.5b](https://ollama.com/library/deepseek-r1:1.5b), it is the smallest [deepseek-r1](https://ollama.com/library/deepseek-r1) model that is available, we will then make a first test to see how well it performs on our hardware, if it is fast then we can still switch to more computational power hungry versions
 
 ollama has the following estimate when it comes to resources that need to be available on your local machine:
 
@@ -196,7 +196,7 @@ TODO: might want to use a regex for markdown headings to split by chapters???
 
 ### Pull an Embeddings Model
 
-First we need to install @langchain/ollama:
+First we need to install [@langchain/ollama](https://github.com/langchain-ai/langchainjs/tree/main/libs/langchain-ollama/):
 
 ```shell
 npm i @langchain/ollama --save-exact
@@ -367,7 +367,7 @@ CREATE EXTENSION vector;
 
 #### Storing the vectors
 
-Back to coding soon, but first we need to install the [@langchain/community](https://github.com/langchain-ai/langchainjs/tree/main/libs/langchain-community/) and also the [pg (node-postgres)](https://www.npmjs.com/package/pg) package:
+Back to coding soon, but first we need to install the [@langchain/community](https://github.com/langchain-ai/langchainjs/tree/main/libs/langchain-community/) package as well as the [pg (node-postgres)](https://www.npmjs.com/package/pg) package:
 
 ```shell
 npm i @langchain/community pg --save-exact
@@ -378,6 +378,8 @@ And then the types for pg:
 ```shell
 npm i @types/pg --save-exact --save-dev
 ```
+
+We have added the @langchain/community package as it contains has [PGVectorStore](https://v03.api.js.langchain.com/classes/_langchain_community.vectorstores_pgvector.PGVectorStore.html), a vectorstore for PostgreSQL (with pgvector) and we added node-postgres to connect to our local database
 
 Next we add a function to use the langchain pgvector vectorstore:
 
@@ -806,7 +808,7 @@ export default BaseForm
 
 Each component re-exports the React props, creating an abstraction layer that will allow us in the future to customize the **props type**, without needing to change something in the components that use the type
 
-#### Creating a basic custom Chat UI
+#### Creating a custom Chat UI
 
 Now that we have created our 3 base components we can finally build a minimalistic UI for our chat interface:
 
@@ -956,3 +958,33 @@ export default submitAction
 > [Next.js "Server Actions and Mutations" documentation](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)  
 > [React "Server Functions / Actions" documentation](https://react.dev/reference/rsc/server-functions)  
 > [React "Form action" documentation](https://react.dev/reference/react-dom/components/form)  
+
+## xxx
+
+The goal of this chapter is to create a generative UI that will use React Server Components to streams back the parts of the answer as soon as they are available and a frontend UI that displays the parts of the answer as soon it receives them
+
+> [!NOTE]  
+> For this part of the tutorial I choose to use the AI SDK because I like how streaming of responses works with this SDK and overall the ease of use, but if you prefer you could also keep using langchain for this task, in which case you might want to have a look at the [langchain-AI Next.js example](https://github.com/langchain-ai/langchain-nextjs-template)
+
+Next we install the [AI SDK](https://sdk.vercel.ai/docs/introduction) (by Vercel):
+
+```shell
+npm i ai --save-exact
+```
+
+
+
+
+> [!MORE]  
+> [AI SDK "ollama provider" repository](https://github.com/sgomez/ollama-ai-provider)  
+> [AI SDK "ollama provider" documentation](https://sdk.vercel.ai/providers/community-providers/ollama)  
+
+
+
+
+
+
+
+
+
+
