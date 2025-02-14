@@ -1,7 +1,7 @@
 import { createOllama } from 'ollama-ai-provider'
-import { streamText, tool, embed } from 'ai'
+import { streamText/*, tool*/, embed } from 'ai'
 import { type CoreMessage } from 'ai'
-import { z } from 'zod'
+//import { z } from 'zod'
 import { createPool, endPool } from '@/lib/postgres'
 
 interface ChatRequest {
@@ -14,9 +14,10 @@ interface ChatRequest {
 interface EmbeddingsRow {
     content: string
     metadata: unknown
+    vector: number[]
 }
 
-// allow streaming responses up to 30 seconds
+// sets max streaming response time to 30 seconds
 export const maxDuration = 30
 
 /*const generateChunks = (input: string) => {
@@ -26,7 +27,7 @@ export const maxDuration = 30
         .filter(i => i !== '')
 }*/
 
-const getEmbeddings = async (question: string) => {
+const getEmbedding = async (question: string): Promise<number[]> => {
 
     //const chunks = generateChunks(question)
 
@@ -34,29 +35,28 @@ const getEmbeddings = async (question: string) => {
         baseURL: 'http://localhost:11434/api'
     })
 
-    const embeddingModel = ollamaProvider.embedding('nomic-embed-text:latest')
+    //const embeddingModel = ollamaProvider.embedding('nomic-embed-text:latest')
+    const embeddingModel = ollamaProvider.embedding('deepseek-r1:1.5b')
 
     try {
         /*const { embeddings } = await embedMany({
             model: embeddingModel,
             values: chunks,
         })*/
-        const embeddings = await embed({
+        const result = await embed({
             model: embeddingModel,
             value: question,
         })
 
-        return embeddings
+        return result.embedding
     } catch (error) {
-        console.error('Error finding knowledge:', error)
-        throw new Error('Error finding knowledge')
+        console.error('Error getting embeddings:', error)
+        throw new Error('Error getting embeddings')
     }
 
 }
 
 const findKnowledge = async (question: string) => {
-
-    console.log('finding knowledge for: ', question)
 
     const pgPool = createPool()
 
@@ -66,17 +66,19 @@ const findKnowledge = async (question: string) => {
 
     try {
 
-        const embeddings = await getEmbeddings(question)
+        const embedding = await getEmbedding(question)
+
+        const embeddingString = `[${embedding.map(e => e.toFixed(6)).join(',')}]`
 
         // good old sql :)
         const query = `
             SELECT content, metadata
-            FROM documents
-            ORDER BY embedding <-> $1
+            FROM vectors
+            ORDER BY vector <#> $1 ASC
             LIMIT 5
         `
 
-        const result = await pgPool.query<EmbeddingsRow>(query, [embeddings])
+        const result = await pgPool.query<EmbeddingsRow>(query, [embeddingString])
 
         if (result.rows.length > 0) {
 
@@ -85,48 +87,65 @@ const findKnowledge = async (question: string) => {
                 metadata: row.metadata
             }))
 
-            console.log('knowledge found: ', knowledge)
-
             const knowledgeContent = knowledge.map(k => k.content).join(' ')
 
             return knowledgeContent
 
         } else {
-            const message = 'Sorry, I don\'t know that.'
-            return message
+            return null
         }
 
     } catch (error) {
-        console.error('Error finding knowledge:', error)
-        throw new Error('Error finding knowledge')
+        let message = 'Error while finding knowledge'
+        const errorString = error instanceof Error ? error.message : (typeof error === 'string' ? error : 'Unknown error')
+        message += errorString !== '' ? ` (${errorString})` : ''
+        throw new Error(message)
     } finally {
         await endPool(pgPool)
-        console.log('pool closed')
     }
 }
 
 export async function POST(req: Request) {
+
+    const body = await req.json() as ChatRequest
+    const messages = body.messages as CoreMessage[]
 
     const ollamaProvider = createOllama({
         baseURL: 'http://localhost:11434/api',
     })
 
     const ollamaModel = ollamaProvider('deepseek-r1:1.5b')
+    // if your device is powerful enough, you can try a larger model:
+    //const ollamaModel = ollamaProvider('deepseek-r1:8b-llama-distill-q8_0')
 
-    const prompt = `You are a helpful onboarding AI that guides new co-workers so that they can get started quickly.
-    Your answers are short and to the point.
-    If no relevant information is found, respond with "Sorry, I don't know that.".
-    Only respond to questions using the following information:`
+    let knowledge = null
+    const lastMessage = messages[messages.length - 1].content
 
-    const body = await req.json() as ChatRequest
-    const messages = body.messages as CoreMessage[]
+    try {
+        if (typeof lastMessage !== 'string') {
+            throw new Error('Message content must be a string')
+        }
+        knowledge = await findKnowledge(lastMessage)
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'unknown error'
+        return new Response(errorMessage, { status: 500 })
+    }
+
+    let prompt = 'You are a helpful onboarding AI and your job is answer questions from new co-workers using internal documentation as context.'
+
+    if (typeof knowledge === 'string' && knowledge !== '') {
+        prompt += `When reasoning or responding, use the following knowledge (from the internal documents of the company) as context:
+        ${knowledge}`
+    }
+
+    prompt += 'End every response with the sentence "Happy coding!"'
 
     const result = streamText({
         model: ollamaModel,
-        system: prompt,
-        messages,
+        prompt: prompt,
+        //messages,
         //maxTokens: 500,
-        tools: {
+        /*tools: {
             getKnowledge: tool({
                 description: 'get information from your knowledge base to answer questions.',
                 parameters: z.object({
@@ -143,7 +162,7 @@ export async function POST(req: Request) {
         toolChoice: {
             type: 'tool',
             toolName: 'getKnowledge'
-        },
+        },*/
     })
 
     return result.toDataStreamResponse({
