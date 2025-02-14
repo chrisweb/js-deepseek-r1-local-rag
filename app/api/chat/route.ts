@@ -35,8 +35,8 @@ const getEmbedding = async (question: string): Promise<number[]> => {
         baseURL: 'http://localhost:11434/api'
     })
 
-    //const embeddingModel = ollamaProvider.embedding('nomic-embed-text:latest')
-    const embeddingModel = ollamaProvider.embedding('deepseek-r1:1.5b')
+    const embeddingModel = ollamaProvider.embedding('nomic-embed-text:latest')
+    //const embeddingModel = ollamaProvider.embedding('deepseek-r1:1.5b')
 
     try {
         /*const { embeddings } = await embedMany({
@@ -70,15 +70,28 @@ const findKnowledge = async (question: string) => {
 
         const embeddingString = `[${embedding.map(e => e.toFixed(6)).join(',')}]`
 
+        console.log('embeddingString: ', embeddingString)
+
         // good old sql :)
+        // euclidean (L2) distance:
+        /*const query = `
+            SELECT content, metadata
+            FROM vectors
+            ORDER BY vector <-> $1
+            LIMIT 5
+        `*/
+
+        // cosine similarity
         const query = `
             SELECT content, metadata
             FROM vectors
-            ORDER BY vector <#> $1 ASC
+            ORDER BY 1 - (vector <=> $1)
             LIMIT 5
         `
 
         const result = await pgPool.query<EmbeddingsRow>(query, [embeddingString])
+
+        console.log('result: ', result)
 
         if (result.rows.length > 0) {
 
@@ -131,10 +144,11 @@ export async function POST(req: Request) {
         return new Response(errorMessage, { status: 500 })
     }
 
-    let prompt = 'You are a helpful onboarding AI and your job is answer questions from new co-workers using internal documentation as context.'
+    let prompt = `You are a helpful onboarding AI and your job is answer questions from new co-workers using internal documentation as context.
+    You should answer the following answer: "${lastMessage}"\n`
 
     if (typeof knowledge === 'string' && knowledge !== '') {
-        prompt += `When reasoning or responding, use the following knowledge (from the internal documents of the company) as context:
+        prompt += `When answering you should use the following knowledge as context:
         ${knowledge}`
     }
 
