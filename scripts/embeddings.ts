@@ -5,7 +5,22 @@ import path from 'node:path'
 import { type Document } from 'langchain/document'
 import { OllamaEmbeddings, type OllamaEmbeddingsParams } from '@langchain/ollama'
 import { PGVectorStore, type PGVectorStoreArgs } from '@langchain/community/vectorstores/pgvector'
-import { createPool, type PoolType } from '@/lib/postgres'
+import pg, { type PoolConfig, type Pool as PoolType } from 'pg'
+
+export function createPool(): PoolType {
+
+    const postgresOptions: PoolConfig = {
+        host: '127.0.0.1',
+        port: 5432,
+        user: 'postgres',
+        password: '123',
+        database: 'vector_store',
+    }
+
+    const pool = new pg.Pool(postgresOptions)
+
+    return pool
+}
 
 async function loadDocuments(documentsPath: string) {
 
@@ -51,7 +66,8 @@ async function storeVectors(vectors: number[][], chunks: Document[], pgPool: Poo
             contentColumnName: 'content',
             metadataColumnName: 'metadata',
         },
-        // supported distance strategies: cosine (default), innerProduct, or euclidean
+        // note to self: supported distance strategies: cosine (default),
+        // innerProduct, or euclidean
         distanceStrategy: 'cosine',
     }
     const vectorStore = await PGVectorStore.initialize(embeddings, options)
@@ -60,14 +76,15 @@ async function storeVectors(vectors: number[][], chunks: Document[], pgPool: Poo
 }
 
 async function endVectorStorePool(vectorStore: PGVectorStore) {
-    // closes all clients and then releases the pool
+    // closes all clients and then releases the pg pool
     await vectorStore.end()
 }
 
 function getEmbeddings() {
     const options: OllamaEmbeddingsParams = {
         // https://ollama.com/library/nomic-embed-text
-        model: 'nomic-embed-text:latest',
+        //model: 'nomic-embed-text:latest',
+        model: 'deepseek-r1:1.5b',
         baseUrl: 'http://localhost:11434',
     }
     const embeddings = new OllamaEmbeddings(options)
