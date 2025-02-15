@@ -23,12 +23,12 @@ const MessageInput: React.FC = () => {
             onError: (error) => {
                 console.error('useChat onError: ', error)
             },
-            onFinish: (message) => {
+            /*onFinish: (message) => {
                 console.log('useChat onFinish: ', message)
             },
             onResponse: (response) => {
                 console.log('useChat onResponse: ', response)
-            },
+            },*/
         }
     )
 
