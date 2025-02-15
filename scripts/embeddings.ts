@@ -27,7 +27,7 @@ async function loadDocuments(documentsPath: string) {
     const loader = new DirectoryLoader(
         path.join(process.cwd(), documentsPath),
         {
-            '.md': filePath => new TextLoader(filePath),
+            '.mdx': filePath => new TextLoader(filePath),
         }
     )
 
@@ -37,21 +37,53 @@ async function loadDocuments(documentsPath: string) {
 
 }
 
-async function splitIntoChunks(docs: Document[]) {
+async function splitIntoChunks(documents: Document[]) {
+
+    // for each document extract the frontmatter from page content as json
+    /*documents.forEach((document) => {
+        console.log(document.metadata)
+        const frontmatter = document.pageContent.match(/---([\s\S]*?)---/)
+        if (frontmatter) {
+            const yamlContent = frontmatter[1]
+            // using a library like js-yaml
+            // https://www.npmjs.com/package/js-yaml
+            // to transform the frontmatter yaml to json
+            // later you might want to use some of that semantic
+            // frontmatter data to give the ai custom instructions in the prompt
+        }
+    })*/
+
+    // for each document remove the frontmatter
+    documents.forEach((document) => {
+        document.pageContent = document.pageContent.replace(/---[\s\S]*?---/, '')
+    })
 
     const markdownSplitter = new MarkdownTextSplitter({
         chunkSize: 1000,
-        chunkOverlap: 200,
+        chunkOverlap: 0,
     })
 
-    const chunks = await markdownSplitter.splitDocuments(docs)
+    // to get an idea what the default separators are
+    //console.log(MarkdownTextSplitter.getSeparatorsForLanguage('markdown'))
+
+    // custom markdown separators
+    markdownSplitter.separators = [
+        '\n## ', // h2 headers
+        '\n### ', // h3 headers
+        //'\n#{1,6}s', // h1-h6 headers
+        '\n```', // code blocks
+        '\n\n', // paragraphs
+        '\n', // line breaks
+    ]
+    const chunks = await markdownSplitter.splitDocuments(documents)
 
     return chunks
 }
 
 async function processChunks(chunks: Document[]) {
     const embeddings = getEmbeddings()
-    const vectors = await embeddings.embedDocuments(chunks.map(chunk => chunk.pageContent))
+    const chunksContent = chunks.map(chunk => chunk.pageContent)
+    const vectors = await embeddings.embedDocuments(chunksContent)
     return vectors
 }
 
@@ -83,8 +115,8 @@ async function endVectorStorePool(vectorStore: PGVectorStore) {
 function getEmbeddings() {
     const options: OllamaEmbeddingsParams = {
         // https://ollama.com/library/nomic-embed-text
-        //model: 'nomic-embed-text:latest',
-        model: 'deepseek-r1:1.5b',
+        model: 'nomic-embed-text:latest',
+        //model: 'deepseek-r1:1.5b',
         baseUrl: 'http://localhost:11434',
     }
     const embeddings = new OllamaEmbeddings(options)
@@ -107,7 +139,7 @@ async function main() {
         const chunks = await splitIntoChunks(documents)
         console.log('chunks created: ', chunks.length)
         const vectors = await processChunks(chunks)
-        console.log('vectors created: ', vectors[0].length)
+        console.log('vectors created')
         const vectorStore = await storeVectors(vectors, chunks, pgPool)
         console.log('vectors stored')
         await endVectorStorePool(vectorStore)
