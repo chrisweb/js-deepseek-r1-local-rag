@@ -74,20 +74,22 @@ const findKnowledge = async (question: string) => {
 
         // good old sql :)
         // euclidean (L2) distance:
-        const query = `
+        /*const query = `
             SELECT content, metadata
             FROM vectors
             ORDER BY vector <-> $1
             LIMIT 5
-        `
+        `*/
 
         // cosine similarity
-        /*const query = `
-            SELECT content, metadata
+        // don't use "1 - (vector <=> $1)" and then ORDER BY DESC
+        // indexes only work with ASC (not DESC)
+        const query = `
+            SELECT content, metadata, vector <=> $1 AS cosine_similarity
             FROM vectors
-            ORDER BY 1 - (vector <=> $1)
+            ORDER BY cosine_similarity
             LIMIT 5
-        `*/
+        `
 
         const result = await pgPool.query<EmbeddingsRow>(query, [embeddingString])
 
@@ -145,11 +147,11 @@ export async function POST(req: Request) {
     }
 
     let prompt = `You are a helpful onboarding AI and your job is answer questions from new co-workers using internal documentation as context.
-    You should answer the following answer: "${lastMessage}"\n`
+    You should answer the following answer: "${lastMessage}"\n\n`
 
     if (typeof knowledge === 'string' && knowledge !== '') {
         prompt += `When answering you should use the following knowledge as context:
-        ${knowledge}`
+        ${knowledge}\n\n`
     }
 
     prompt += 'End every response with the sentence "Happy coding!"'
@@ -160,7 +162,7 @@ export async function POST(req: Request) {
         //messages,
         //maxTokens: 500,
         experimental_continueSteps: true,
-        //temperature: 0.5,
+        temperature: 0.1,
         //experimental_telemetry: {},
         /*tools: {
             getKnowledge: tool({
