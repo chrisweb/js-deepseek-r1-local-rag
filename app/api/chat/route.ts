@@ -1,5 +1,5 @@
 import { createOllama } from 'ollama-ai-provider'
-import { streamText/*, tool*/, embed } from 'ai'
+import { streamText/*, tool, smoothStream*/, embed } from 'ai'
 import { type CoreMessage } from 'ai'
 //import { z } from 'zod'
 import { createPool, endPool } from '@/lib/postgres'
@@ -70,24 +70,24 @@ const findKnowledge = async (question: string) => {
 
         const embeddingString = `[${embedding.map(e => e.toFixed(6)).join(',')}]`
 
-        console.log('embeddingString: ', embeddingString)
+        //console.log('embeddingString: ', embeddingString)
 
         // good old sql :)
         // euclidean (L2) distance:
-        /*const query = `
+        const query = `
             SELECT content, metadata
             FROM vectors
             ORDER BY vector <-> $1
             LIMIT 5
-        `*/
+        `
 
         // cosine similarity
-        const query = `
+        /*const query = `
             SELECT content, metadata
             FROM vectors
             ORDER BY 1 - (vector <=> $1)
             LIMIT 5
-        `
+        `*/
 
         const result = await pgPool.query<EmbeddingsRow>(query, [embeddingString])
 
@@ -159,6 +159,9 @@ export async function POST(req: Request) {
         prompt: prompt,
         //messages,
         //maxTokens: 500,
+        experimental_continueSteps: true,
+        //temperature: 0.5,
+        //experimental_telemetry: {},
         /*tools: {
             getKnowledge: tool({
                 description: 'get information from your knowledge base to answer questions.',
@@ -177,6 +180,16 @@ export async function POST(req: Request) {
             type: 'tool',
             toolName: 'getKnowledge'
         },*/
+        /*onChunk({ chunk }) {
+            console.log('chunk: ', chunk)
+        },*/
+        /*onFinish({ text, finishReason, usage, response }) {
+            console.log('text: ', text)
+            console.log('finishReason: ', finishReason)
+            console.log('usage: ', usage)
+            console.log('response: ', response)
+        },*/
+        //experimental_transform: smoothStream({ chunking: 'line' }),
     })
 
     return result.toDataStreamResponse({
