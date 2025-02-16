@@ -81,19 +81,34 @@ const findKnowledge = async (question: string) => {
             LIMIT 5
         `*/
 
-        // cosine similarity
-        // don't use "1 - (vector <=> $1)" and then ORDER BY DESC
-        // indexes only work with ASC (not DESC)
-        const query = `
-            SELECT content, metadata, vector <=> $1 AS cosine_similarity
+        // cosine similarity = 1 - cosine distance
+        // cosine similarity score the higher the better (they are more similar)
+        // cosine distance score the lower the better (they are closer to each other)
+        // cosine distance (and euclidean distance) need to use ORDER BY ASC
+        // cosine similarity results need to use ORDER BY DESC
+        // however pgvector index only works with ORDER BY ASC (and a LIMIT)
+        // source: https://github.com/pgvector/pgvector?tab=readme-ov-file#troubleshooting
+        // you could create an index and then use an EXPLAIN to see if the index
+        // is being used or if the query still uses sequential scans
+        /*const query = `
+            SELECT content, metadata, 1 - (vector <=> $1) AS similarity
             FROM vectors
-            ORDER BY cosine_similarity
+            ORDER BY similarity DESC
             LIMIT 5
+        `*/
+        const query = `
+            SELECT content, metadata, vector <=> $1 AS distance
+            FROM vectors
+            ORDER BY distance
+            LIMIT 10
         `
+
+        // we could add "WHERE distance < 0.4" to make sure we only use good results
 
         const result = await pgPool.query<EmbeddingsRow>(query, [embeddingString])
 
         console.log('result: ', result)
+        console.log('question: ', question)
 
         if (result.rows.length > 0) {
 
