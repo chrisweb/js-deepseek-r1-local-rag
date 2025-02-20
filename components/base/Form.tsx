@@ -8,9 +8,7 @@ const BaseForm: React.FC<BaseFormProps> = (props) => {
 
     return (
         <form {...rest}>
-            <form>
-                {children}
-            </form>
+            {children}
         </form>
     )
 }
