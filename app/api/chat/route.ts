@@ -39,22 +39,21 @@ export async function POST(req: Request) {
         //experimental_continueSteps: true,
         //experimental_telemetry: {},
         /*tools: {
-            getKnowledge: tool({
-                description: 'get information from your knowledge base to answer questions.',
+            getKnowledgeTool: tool({
+                description: 'get information from a knowledge base',
                 parameters: z.object({
-                    question: z.string().describe('the users question'),
+                    question: z.string().describe('a user question'),
                 }),
                 execute: async ({ question }) => {
-                    console.log('getKnowledge tool executing for: ', question)
                     const knowledge = await findKnowledge(question)
                     console.log('getKnowledge tool result: ', knowledge)
-                    return 'foo bar'
+                    // TODO: tool is unfinished
                 },
             })
         },
         toolChoice: {
             type: 'tool',
-            toolName: 'getKnowledge'
+            toolName: 'getKnowledgeTool'
         },*/
         /*onChunk({ chunk }) {
             console.log('chunk: ', chunk)
@@ -74,6 +73,7 @@ export async function POST(req: Request) {
             console.error(message)
             return message
         },
+        sendReasoning: true,
     })
 
 }
