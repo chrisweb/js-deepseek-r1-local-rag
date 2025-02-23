@@ -10,18 +10,18 @@
   },
   "dependencies": {
     "ai": "4.1.45",
-    "next": "15.2.0-canary.66",
+    "next": "15.1.7",
     "ollama-ai-provider": "1.2.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.2.0-canary.66",
-    "typescript": "^5"
+    "@eslint/eslintrc": "3.3.0",
+    "@types/node": "22.13.5",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "eslint": "9.21.0",
+    "eslint-config-next": "15.1.7",
+    "typescript": "5.7.3"
   }
 }
