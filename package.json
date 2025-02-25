@@ -7,7 +7,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "embeddings": "node --experimental-transform-types scripts/embeddings.ts"
+        "embeddings": "node --experimental-transform-types scripts/embeddings.mts"
     },
     "dependencies": {
         "ai": "4.1.45",
