@@ -22,20 +22,6 @@ async function loadDocuments(documentsPath: string) {
 
 async function chunkNorris(documents: Document[]) {
 
-    // for each document extract the frontmatter from page content as json
-    /*documents.forEach((document) => {
-        console.log(document.metadata)
-        const frontmatter = document.pageContent.match(/---([\s\S]*?)---/)
-        if (frontmatter) {
-            const yamlContent = frontmatter[1]
-            // using a library like js-yaml
-            // https://www.npmjs.com/package/js-yaml
-            // to transform the frontmatter yaml to json
-            // later you might want to use some of that semantic
-            // frontmatter data to give the ai custom instructions in the prompt
-        }
-    })*/
-
     // for each document remove the frontmatter
     documents.forEach((document) => {
         document.pageContent = document.pageContent.replace(/---[\s\S]*?---/, '')
