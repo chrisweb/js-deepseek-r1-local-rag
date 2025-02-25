@@ -10,6 +10,7 @@
         "embeddings": "node --experimental-transform-types scripts/embeddings.mts"
     },
     "dependencies": {
+        "@langchain/ollama": "0.2.0",
         "ai": "4.1.45",
         "langchain": "0.3.19",
         "next": "15.1.7",
