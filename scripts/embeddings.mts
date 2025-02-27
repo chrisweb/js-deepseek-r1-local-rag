@@ -63,8 +63,8 @@ async function processChunks(chunks: Document[]) {
 function getEmbeddingModel() {
     const options: OllamaEmbeddingsParams = {
         // https://ollama.com/library/nomic-embed-text
-        //model: 'nomic-embed-text:latest',
-        model: 'deepseek-r1:1.5b',
+        model: 'nomic-embed-text:latest',
+        //model: 'deepseek-r1:1.5b',
         baseUrl: 'http://localhost:11434',
     }
     const embeddings = new OllamaEmbeddings(options)

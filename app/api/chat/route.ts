@@ -74,8 +74,8 @@ const getEmbedding = async (question: string): Promise<number[]> => {
         baseURL: 'http://localhost:11434/api'
     })
 
-    //const embeddingModel = ollamaProvider.embedding('nomic-embed-text:latest')
-    const embeddingModel = ollamaProvider.embedding('deepseek-r1:1.5b')
+    const embeddingModel = ollamaProvider.embedding('nomic-embed-text:latest')
+    //const embeddingModel = ollamaProvider.embedding('deepseek-r1:1.5b')
 
     try {
         const result = await embed({
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
 
     if (typeof knowledge === 'string' && knowledge !== '') {
         prompt += `When answering you should use the following knowledge:
-        ${knowledge}\n\n`
+        <knowledge>${knowledge}</knowledge>\n\n`
     }
 
     prompt += 'End every response with the sentence "Happy coding!"'
