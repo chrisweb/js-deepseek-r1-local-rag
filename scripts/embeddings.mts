@@ -6,6 +6,7 @@ import { type Document } from 'langchain/document'
 import { OllamaEmbeddings, type OllamaEmbeddingsParams } from '@langchain/ollama'
 import { PGVectorStore, type PGVectorStoreArgs } from '@langchain/community/vectorstores/pgvector'
 import pg, { type PoolConfig, type Pool as PoolType } from 'pg'
+import yaml from 'js-yaml'
 
 async function loadDocuments(documentsPath: string) {
 
@@ -24,6 +25,16 @@ async function loadDocuments(documentsPath: string) {
 }
 
 async function chunkNorris(documents: Document[]) {
+
+    documents.forEach((document) => {
+        const frontmatter = document.pageContent.match(/---([\s\S]*?)---/)
+        if (frontmatter) {
+            const yamlContent = frontmatter[1]
+            const frontmatterData = yaml.load(yamlContent)
+            document.metadata.frontmatter = frontmatterData
+            //console.log('document.metadata: ', document.metadata)
+        }
+    })
 
     // for each document remove the frontmatter
     documents.forEach((document) => {
