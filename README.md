@@ -8,15 +8,25 @@
   </picture>
 </a>
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
+
 # chris.lu tutorial: Local DeepSeek-R1 AI RAG using JavaScript (TypeScript)
 
-This repository contains all the source code for the [Local DeepSeek-R1 AI RAG using JavaScript (TypeScript)](https://chris.lu/web_development/tutorials/js-deepseek-r1-local-rag) tutorial
+This repository contains all the source code for the [Local DeepSeek-R1 AI RAG using JavaScript (TypeScript)](https://chris.lu/web_development/tutorials/js-deepseek-r1-local-rag) tutorial on my blog (chris.lu)
 
 ## Getting started
 
-* clone this repository
-* make sure you followed the instructions for the [local copy of an ai model](https://chris.lu/web_development/tutorials/js-deepseek-r1-local-rag#enabling-pgvector-for-a-database#ollama-installation)
+First clone this repository:
+
+```bash
+   git clone https://github.com/chrisweb/js-deepseek-r1-local-rag.git
+   cd js-deepseek-r1-local-rag
+```
+
+I recommend reading the [tutorial](https://chris.lu/web_development/tutorials/js-deepseek-r1-local-rag) first and then follow these steps:
+
 * use the `npm i` command to install all the dependencies
+* make sure you followed the instructions for the [local copy of an ai model](https://chris.lu/web_development/tutorials/js-deepseek-r1-local-rag#enabling-pgvector-for-a-database#ollama-installation)
 * put some markdown (or MDX) documents into the **/docs** folder, or download the docs like the [Next.js app router docs](https://github.com/vercel/next.js/tree/canary/docs/01-app), or the [Node.js API docs](https://github.com/nodejs/node/tree/main/doc/api) or the [React.dev docs](https://github.com/reactjs/react.dev/tree/main/src/content/reference/react)
 * make sure you followed the steps to [create the database](https://chris.lu/web_development/tutorials/js-deepseek-r1-local-rag#enabling-pgvector-for-a-database)
 * run the embeddings script using the `npm run embeddings` command
