@@ -34,6 +34,10 @@ I recommend reading the [tutorial](https://chris.lu/web_development/tutorials/js
 * use the `npm run dev` command to start a local Next.js development server
 * visit **localhost:3000** in your browser to test the chatbot
 
+If everything goes well 🤞 you should have a chat bot like this:
+
+![example of how the chat bot UI looks like](public/images/readme/chatbot-example.jpg)
+
 ## npm commands (package.json scripts)
 
 `npm run dev`: to start the development server (with turbopack)  

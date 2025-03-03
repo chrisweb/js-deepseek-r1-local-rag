@@ -1,11 +1,16 @@
-import styles from './page.module.css'
 import ChatClient from '@/components/chat/Client'
 
 export default function Home() {
 
     return (
-        <div className={styles.page}>
-            <ChatClient />
-        </div>
+        <section className="chat-container">
+            <header className="chat-header">
+                <h1>AI chatbot example</h1>
+                <p className="tagline">Local DeepSeek-R1 chatbot and RAG</p>
+            </header>
+            <main>
+                <ChatClient />
+            </main>
+        </section>
     )
 }
