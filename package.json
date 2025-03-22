@@ -10,27 +10,27 @@
         "embeddings": "node --experimental-transform-types scripts/embeddings.mts"
     },
     "dependencies": {
-        "@langchain/community": "0.3.34",
+        "@langchain/community": "0.3.36",
         "@langchain/ollama": "0.2.0",
-        "ai": "4.1.56",
+        "ai": "4.2.0",
         "js-yaml": "4.1.0",
         "langchain": "0.3.19",
-        "next": "15.2.2",
+        "next": "15.2.3",
         "ollama-ai-provider": "1.2.0",
-        "pg": "8.14.0",
+        "pg": "8.14.1",
         "react": "19.0.0",
         "react-dom": "19.0.0",
         "react-markdown": "10.1.0"
     },
     "devDependencies": {
-        "@eslint/eslintrc": "3.3.0",
+        "@eslint/eslintrc": "3.3.1",
         "@types/js-yaml": "4.0.9",
-        "@types/node": "22.13.10",
+        "@types/node": "22.13.11",
         "@types/pg": "8.11.11",
-        "@types/react": "19.0.10",
+        "@types/react": "19.0.12",
         "@types/react-dom": "19.0.4",
-        "eslint": "9.22.0",
-        "eslint-config-next": "15.2.2",
+        "eslint": "9.23.0",
+        "eslint-config-next": "15.2.3",
         "typescript": "5.8.2"
     }
 }
